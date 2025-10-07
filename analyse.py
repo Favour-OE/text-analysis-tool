@@ -1,5 +1,6 @@
 from random_username.generate import generate_username
 
+
 # Welcome the User
 def welcomeUser():
     print(
@@ -9,17 +10,28 @@ def welcomeUser():
 
 # Get Username
 def getUsername():
-    # Print message prompting user to input their name
-    usernameFromInput = input("\nTo begin, please enter your username: \n")
-    
-    if len(usernameFromInput) < 5 or not usernameFromInput.isidentifier():
-        print(
-            "Your username must be at least 5 characters long, alphanumeric only (a-z/A-Z/0-9), have no spaces, and cannot start with a number "
-        )
-        print("Assigning Username Instead...")
-        usernameFromInput = generate_username()[0]
 
-    return usernameFromInput
+    maxAttempts = 3
+    attempts = 0
+    while attempts < maxAttempts:
+        # Print message prompting user to input their namef
+        inputPrompt = ""
+        if attempts ==0:
+            inputPrompt = "\nTo begin, please enter your username: \n"
+        else:
+            inputPrompt = "\n Please try again: \n"
+        
+        usernameFromInput = input(inputPrompt)
+
+        if len(usernameFromInput) < 5 or not usernameFromInput.isidentifier():
+            print(
+                "Your username must be at least 5 characters long, alphanumeric only (a-z/A-Z/0-9), have no spaces, and cannot start with a number "
+            )
+        else:
+            return usernameFromInput
+        attempts += 1
+    print("Exhausted all " + str(maxAttempts) + " attempts\nAssigning Username Instead...")
+    return generate_username()[0]
 
 
 # Greet the user
