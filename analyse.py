@@ -1,5 +1,6 @@
 from random_username.generate import generate_username
 from nltk.tokenize import word_tokenize, sent_tokenize
+import re
 
 
 # Welcome the User
@@ -57,16 +58,29 @@ def tokenizeWords(sentences):
         words.extend(word_tokenize(sentence))
     return words
 
-#Get User Details
+#Get the key sentences based on keyword search pattern
+def extractKeySentences(sentences):
+    matchedSentences = []
+    for sentence in sentences:
+        # if sentence matches desired pattern, add to matchedSentences
+        if re.search(stockSearchPattern, sentence.lower()):
+            matchedSentences.append(sentence)
+    return matchedSentences
+
+# Get User Details
 welcomeUser()
 username = getUsername()
 greetUser(username)
 
-#Extract and tokenize Text
+# Extract and tokenize Text
 articleTextRaw = getArticleText()
 articleSentences = tokenizeSentences(articleTextRaw)
 articleWords = tokenizeWords(articleSentences)
 
-#print for testing
+
+# Get Analytics
+stockSearchPattern = "[0-9]|[%$€£]|thousand|million|billion|trillion|profit|loss"
+keySentences = extractKeySentences(articleSentences)
+# print for testing
 print("GOT:")
-print(tokenizeSentences(articleTextRaw))
+print(articleSentences)
