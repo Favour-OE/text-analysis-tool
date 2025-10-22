@@ -3,6 +3,7 @@ from random_username.generate import generate_username
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet, stopwords
+from wordcloud import WordCloud
 
 nltk.download("stopwords")
 nltk.download("averaged_perceptron_tagger_eng")
@@ -130,9 +131,9 @@ def cleanseWordList(posTaggedWordTuples):
 
 
 # Get User Details
-welcomeUser()
-username = getUsername()
-greetUser(username)
+# welcomeUser()
+# username = getUsername()
+# greetUser(username)
 
 # Extract and tokenize Text
 articleTextRaw = getArticleText()
@@ -148,7 +149,19 @@ wordsPerSentence = getWordsPerSentence(articleSentences)
 # Get word analytics
 wordsPosTagged = nltk.pos_tag(articleWords)
 articleWordsCleansed = cleanseWordList(wordsPosTagged)
+
+# Generate word cloud
+seperator = " "
+wordcloud = WordCloud(
+    width=1000,
+    height=700,
+    background_color="white",
+    colormap="Set2",
+    collocations=False,
+).generate(seperator.join(articleWordsCleansed))
+wordcloud.to_file("results/wordcloud.png")
+
+
 # print for testing
-print("GOT:")
-# print(articleWordsCleansed)
-print(articleWordsCleansed)
+print("DONE:")
+
