@@ -1,18 +1,20 @@
 import nltk
+import re
 from random_username.generate import generate_username
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
 from nltk.corpus import wordnet, stopwords
 from wordcloud import WordCloud
+from nltk.sentiment.vader import SentimentIntensityAnalyzer
 
+nltk.download('vader_lexicon')
 nltk.download("stopwords")
 nltk.download("averaged_perceptron_tagger_eng")
 nltk.download("wordnet")
+
 stopWords = set(stopwords.words("english"))
-
 wordLemmatizer = WordNetLemmatizer()
-import re
-
+sentimentAnalyzer = SentimentIntensityAnalyzer()
 
 # Welcome the User
 def welcomeUser():
@@ -150,7 +152,7 @@ wordsPerSentence = getWordsPerSentence(articleSentences)
 wordsPosTagged = nltk.pos_tag(articleWords)
 articleWordsCleansed = cleanseWordList(wordsPosTagged)
 
-# Generate word cloud
+# # Generate word cloud
 seperator = " "
 wordcloud = WordCloud(
     width=1000,
@@ -161,7 +163,8 @@ wordcloud = WordCloud(
 ).generate(seperator.join(articleWordsCleansed))
 wordcloud.to_file("results/wordcloud.png")
 
-
+#Run Sentiment Analysis
+sentimentResults = sentimentAnalyzer.polarity_scores(articleTextRaw)
 # print for testing
+print(sentimentResults)
 print("DONE:")
-
