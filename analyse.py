@@ -1,5 +1,6 @@
 import nltk
 import re
+import json
 from random_username.generate import generate_username
 from nltk.tokenize import word_tokenize, sent_tokenize
 from nltk.stem import WordNetLemmatizer
@@ -133,9 +134,9 @@ def cleanseWordList(posTaggedWordTuples):
 
 
 # Get User Details
-# welcomeUser()
-# username = getUsername()
-# greetUser(username)
+welcomeUser()
+username = getUsername()
+greetUser(username)
 
 # Extract and tokenize Text
 articleTextRaw = getArticleText()
@@ -152,8 +153,9 @@ wordsPerSentence = getWordsPerSentence(articleSentences)
 wordsPosTagged = nltk.pos_tag(articleWords)
 articleWordsCleansed = cleanseWordList(wordsPosTagged)
 
-# # Generate word cloud
+# Generate word cloud
 seperator = " "
+wordCloudFilePath = "results/wordcloud.png"
 wordcloud = WordCloud(
     width=1000,
     height=700,
@@ -161,10 +163,27 @@ wordcloud = WordCloud(
     colormap="Set2",
     collocations=False,
 ).generate(seperator.join(articleWordsCleansed))
-wordcloud.to_file("results/wordcloud.png")
+wordcloud.to_file(wordCloudFilePath)
 
-#Run Sentiment Analysis
-sentimentResults = sentimentAnalyzer.polarity_scores(articleTextRaw)
+# Run Sentiment Analysis
+sentimentResult = sentimentAnalyzer.polarity_scores(articleTextRaw)
+
+# Collate analyses into one  dictionary
+finalResult = {
+    "username": username,
+    "data": {
+        "keySentences": keySentences,
+        "wordsPerSentence": round(wordsPerSentence, 1),
+        "sentiment": sentimentResult,
+        "wordCloudFilePath": wordCloudFilePath,
+    },
+    "metadata": {
+        "sentencesAnalyzed": len(articleSentences),
+        "wordsAnalyzed": len(articleWordsCleansed),
+    },
+}
+finalResultJson = json.dumps(finalResult, indent=4)
+
 # print for testing
-print(sentimentResults)
+print(finalResultJson)
 print("DONE:")
