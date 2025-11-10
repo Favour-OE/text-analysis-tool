@@ -57,6 +57,15 @@ def getCompanyNews(company):
     return allNewsArticles
 
 
+def extractNewsArticleTextFromHtml(soup):
+    allText = ""
+    results = soup.find_all("p", class_="yf-1090901")
+    for res in results:
+        text = res.text
+        allText += text
+    return allText
+
+
 headers = {
     "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
     "AppleWebKit/537.36 (KHTML, like Gecko) "
@@ -66,19 +75,14 @@ headers = {
 
 
 def extractCompanyNewsArticles(newsArticles):
+    allArticlesText = ""
     for newsArticle in newsArticles:
         url = newsArticle["URL"]
-        try:
-            page = requests.get(url, headers=headers)
-            soup = BeautifulSoup(page.text, "html.parser")
-            
-            if soup.find_all(string="Story Continues"):
-                print("Tag FOUND - Don't Skip", url)
-            else:
-                print("Tag NOT FOUND - Should Skip", url)
-
-        except requests.exceptions.RequestException as e:
-            print("Skipping", url)
+        page = requests.get(url, headers=headers)
+        soup = BeautifulSoup(page.text, "html.parser")
+        if soup.find_all(string="Story Continues"):
+            allArticlesText += extractNewsArticleTextFromHtml(soup)
+    return allArticlesText
 
 
 def getCompanyStockInfo(tickersSymbol):
@@ -89,9 +93,9 @@ def getCompanyStockInfo(tickersSymbol):
     basicInfo = extractBasicInfo(company.info)
     priceHistory = getPriceHistory(company)
     futureearningsDates = getEarningsDates(company)
-    companyNews = getCompanyNews(company)
     newsArticles = getCompanyNews(company)
-    extractCompanyNewsArticles(newsArticles)
+    newsArticlesAllText = extractCompanyNewsArticles(newsArticles)
+    print(newsArticlesAllText)
 
 
 getCompanyStockInfo("MSFT")
