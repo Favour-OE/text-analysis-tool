@@ -92,21 +92,26 @@ def getCompanyStockInfo(tickersSymbol):
 
     # Get basic info from company
     basicInfo = extractBasicInfo(company.info)
+
+    #check if company exist, else trigger error
+    if not basicInfo["longName"]:
+        raise NameError("Could not find stock Info, ticker may be delisted or not exist")
+
+
     priceHistory = getPriceHistory(company)
     futureearningsDates = getEarningsDates(company)
     newsArticles = getCompanyNews(company)
     newsArticlesAllText = extractCompanyNewsArticles(newsArticles)
-    newsTextAnalysis  = analyse.analyzeText(newsArticlesAllText)
-    
+    newsTextAnalysis = analyse.analyzeText(newsArticlesAllText)
+
     finalStockAnalysis = {
-        'basicInfo': basicInfo,
-        'priceHistory': priceHistory,
-        'futureEarningsDates': futureearningsDates,
-        'newsArticles': newsArticles,
-        'newsTextAnalysis': newsTextAnalysis
+        "basicInfo": basicInfo,
+        "priceHistory": priceHistory,
+        "futureEarningsDates": futureearningsDates,
+        "newsArticles": newsArticles,
+        "newsTextAnalysis": newsTextAnalysis,
     }
     return finalStockAnalysis
 
 
-# companyStockAnalysis = getCompanyStockInfo("MSFT")
-# print(json.dumps(companyStockAnalysis, indent = 4))
+# companyStockAnalysis = 
