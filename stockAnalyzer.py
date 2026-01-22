@@ -1,13 +1,14 @@
+from datetime import datetime
 import json
-from bs4 import BeautifulSoup
 import yfinance as yf
 import requests
-from datetime import datetime
+from bs4 import BeautifulSoup
+
 import analyse
 
 
 def extractBasicInfo(data):
-    keystoExcract = [
+    keysToExtract = [
         "longName",
         "website",
         "sector",
@@ -17,89 +18,91 @@ def extractBasicInfo(data):
         "trailingEps",
     ]
     basicInfo = {}
-    for key in keystoExcract:
+    for key in keysToExtract:
         if key in data:
             basicInfo[key] = data[key]
         else:
             basicInfo[key] = ""
-
     return basicInfo
 
 
 def getPriceHistory(company):
-    historyDf = company.history(period="12mo")
-    prices = historyDf["Open"].tolist()
-    dates = historyDf.index.strftime("%Y-%m-%d").tolist()
+    historyDF = company.history(period="2mo")
+    prices = historyDF["Open"].tolist()
+    dates = historyDF.index.strftime("%Y-%m-%d").tolist()
+    return {"price": prices, "date": dates}
 
-    return {"price": prices, "dates": dates}
 
-
-def getEarningsDates(company):
+def getEarningDates(company):
     earningsDatesDF = company.earnings_dates
     allDates = earningsDatesDF.index.strftime("%Y-%m-%d").tolist()
-    datesObjects = [datetime.strptime(date, "%Y-%m-%d") for date in allDates]
+    dateObjects = [datetime.strptime(date, "%Y-%m-%d") for date in allDates]
     currentDate = datetime.now()
     futureDates = [
-        date.strftime("%Y-%m-%d") for date in datesObjects if date > currentDate
+        date.strftime("%Y-%m-%d") for date in dateObjects if date > currentDate
     ]
     return futureDates
 
 
 def getCompanyNews(company):
-    newslist = company.news
+    newsList = company.news
     allNewsArticles = []
-    for newsDict in newslist:
-        newsDictToAdd = {
-            "title": newsDict["content"]["title"],
-            "URL": newsDict["content"]["canonicalUrl"]["url"],
-        }
-        allNewsArticles.append(newsDictToAdd)
-    # print(allNewsArticles)
+    for newsDict in newsList:
+        try:
+            title = newsDict["content"]["title"]
+            link = newsDict["content"]["canonicalUrl"]["url"]
+            newsDictToAdd = {
+                "title": title,
+                "link": link,
+            }
+            allNewsArticles.append(newsDictToAdd)
+        except KeyError:
+            continue
     return allNewsArticles
 
 
 def extractNewsArticleTextFromHtml(soup):
     allText = ""
-    results = soup.find_all("p", class_="yf-1090901")
-    for res in results:
-        text = res.text
-        allText += text
+    paragraphs = soup.find_all("p")
+    for p in paragraphs:
+        allText += p.get_text() + " "
     return allText
 
 
 headers = {
-    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) "
-    "AppleWebKit/537.36 (KHTML, like Gecko) "
-    "Chrome/120.0.0.0 Safari/537.36",
-    "Accept-Language": "en-US,en;q=0.9",
+    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/58.0.3029.110 Safari/537.3"
 }
 
 
 def extractCompanyNewsArticles(newsArticles):
     allArticlesText = ""
     for newsArticle in newsArticles:
-        url = newsArticle["URL"]
-        page = requests.get(url, headers=headers)
-        soup = BeautifulSoup(page.text, "html.parser")
-        if soup.find_all(string="Story Continues"):
-            allArticlesText += extractNewsArticleTextFromHtml(soup)
+        url = newsArticle["link"]
+        try:
+            page = requests.get(url, headers=headers, timeout=10)
+            soup = BeautifulSoup(page.text, "html.parser")
+            if not soup.find_all(string="Continue reading"):
+                allArticlesText += extractNewsArticleTextFromHtml(soup)
+        except Exception:
+            pass
     return allArticlesText
 
 
-def getCompanyStockInfo(tickersSymbol):
-    # Get data from Yahoo Finance
-    company = yf.Ticker(tickersSymbol)
+def getCompanyStockInfo(tickerSymbol):
+    # Get data from Yahoo Finance API
+    company = yf.Ticker(tickerSymbol)
 
-    # Get basic info from company
+    # Get basic info on company
     basicInfo = extractBasicInfo(company.info)
 
-    #check if company exist, else trigger error
+    # Check if company exists, if not, trigger error
     if not basicInfo["longName"]:
-        raise NameError("Could not find stock Info, ticker may be delisted or not exist")
-
+        raise NameError(
+            {"Could not find stock info, ticket may be delisted or does not exist."}
+        )
 
     priceHistory = getPriceHistory(company)
-    futureearningsDates = getEarningsDates(company)
+    futureEarningDates = getEarningDates(company)
     newsArticles = getCompanyNews(company)
     newsArticlesAllText = extractCompanyNewsArticles(newsArticles)
     newsTextAnalysis = analyse.analyzeText(newsArticlesAllText)
@@ -107,11 +110,12 @@ def getCompanyStockInfo(tickersSymbol):
     finalStockAnalysis = {
         "basicInfo": basicInfo,
         "priceHistory": priceHistory,
-        "futureEarningsDates": futureearningsDates,
+        "futureEarningDates": futureEarningDates,
         "newsArticles": newsArticles,
         "newsTextAnalysis": newsTextAnalysis,
     }
     return finalStockAnalysis
 
 
-# companyStockAnalysis = 
+# companyStockAnalysis = getCompanyStockInfo('MSFT')
+# print(json.dumps(companyStockAnalysis, indent=4))

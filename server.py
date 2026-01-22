@@ -1,9 +1,14 @@
 # Importing flask module in the project is mandatory
 # An object of Flask class is our WSGI application.
-from flask import Flask, abort, request
+from flask import Flask, abort, request, jsonify
 from flask_cors import CORS
 from stockAnalyzer import getCompanyStockInfo
 from analyse import analyzeText
+import json
+
+
+f = open('test/results.json')
+stockDataTest = json.load(f)
 
 # Flask constructor takes the name of
 # current module (__name__) as argument.
@@ -21,13 +26,15 @@ def healthCheck():
 
 @app.route("/analyze-stock/<ticker>", methods=["GET"])
 def analyzeStock(ticker):
+    return (stockDataTest)
     if len(ticker) > 5 or not ticker.isidentifier():
         abort(400, "invalid ticker symbol")
     try:
         analysis = getCompanyStockInfo(ticker)
     except NameError as e:
         abort(404, e)
-    except:
+    except Exception as e:
+        print(f'Error running the stock analysis: {e}')
         abort(500, "Something went wrong running the stock analysis")
     return analysis
 
