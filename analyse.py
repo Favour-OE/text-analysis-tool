@@ -204,7 +204,3 @@ def analyzeText(textToAnalyze):
         },
     }
     return finalResult
-
-
-
-analyzeText(articleTextRaw)
