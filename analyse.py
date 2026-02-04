@@ -14,6 +14,7 @@ nltk.download("vader_lexicon")
 nltk.download("stopwords")
 nltk.download("averaged_perceptron_tagger_eng")
 nltk.download("wordnet")
+nltk.download("punkt")
 
 stopWords = set(stopwords.words("english"))
 wordLemmatizer = WordNetLemmatizer()
@@ -183,7 +184,6 @@ def analyzeText(textToAnalyze):
     encodedWordcloud = (
         base64.b64encode(imgIO.getvalue()).decode("utf-8") if imgIO.getvalue() else ""
     )
-    
 
     # Run Sentiment Analysis
     sentimentResult = sentimentAnalyzer.polarity_scores(textToAnalyze)
